@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>極限倖存者：魔法割草大冒險 (Rogue Survivor)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="game-wrapper">
+    <!-- 頂部標題與狀態 -->
+    <header class="game-header">
+      <div class="brand">
+        <span class="icon animate-bounce">🧙‍♂️</span>
+        <div>
+          <h1 class="title">極限倖存者 <span class="badge">ROGUE SURVIVOR</span></h1>
+          <p class="subtitle">自動施法割草生存，升級選擇流派擊潰潮水怪獸！</p>
+        </div>
+      </div>
+      <div class="controls-top">
+        <button id="soundBtn" class="btn btn-sm">🔊 音效: 開</button>
+      </div>
+    </header>
+
+    <!-- 經驗值條 -->
+    <div class="exp-bar-container">
+      <div id="expBar" class="exp-bar-fill" style="width: 0%;"></div>
+      <div id="expText" class="exp-bar-text">LV. 1 (0 / 10 EXP)</div>
+    </div>
+
+    <!-- 遊戲主畫布與層疊介面 -->
+    <div class="canvas-container">
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+      <!-- 戰鬥進行中的 HUD -->
+      <div id="hud" class="hud-overlay hidden">
+        <div class="hud-top">
+          <!-- 生命值與殺敵數 -->
+          <div class="hud-card">
+            <div class="hp-row">
+              <span class="hp-label">❤️ HP:</span>
+              <div class="hp-bar-container">
+                <div id="hpBar" class="hp-bar-fill" style="width: 100%;"></div>
+              </div>
+              <span id="hpText" class="hp-text">100/100</span>
+            </div>
+            <div class="kill-row">
+              <span>💀 擊殺:</span> <span id="killCount" class="kill-count">0</span>
+            </div>
+          </div>
+
+          <!-- 生存計時器與波次 -->
+          <div class="hud-card text-right">
+            <div id="timeText" class="timer-text">00:00</div>
+            <div id="waveText" class="wave-text">第 1 波怪潮</div>
+          </div>
+        </div>
+
+        <!-- 底部已解鎖法術清單 -->
+        <div id="activeSkillsBar" class="active-skills-bar">
+          <span class="skills-label">法術:</span>
+        </div>
+      </div>
+
+      <!-- 開始畫面 Overlay -->
+      <div id="startOverlay" class="screen-overlay">
+        <div class="overlay-icon animate-bounce">⚡🧙‍♂️</div>
+        <h2 class="overlay-title gold-glow">極限倖存者</h2>
+        <p class="overlay-desc">
+          成群結隊的怪獸正在逼近！專注走位閃躲，武器會<b>自動瞄準攻擊</b>。<br>
+          拾取掉落的藍色水晶，每次升級可從 3 個奧術天賦中選擇一項強化！
+        </p>
+
+        <!-- 法術簡介手冊 -->
+        <div class="guide-box">
+          <div class="guide-item"><span>🔮 <b>奧術法球</b>：</span><span>環繞法師高速旋轉，粉碎近身敵人。</span></div>
+          <div class="guide-item"><span>⚡ <b>連鎖閃電</b>：</span><span>自動引雷劈擊多名隨機怪獸。</span></div>
+          <div class="guide-item"><span>🔥 <b>追蹤火球</b>：</span><span>發射爆裂火球，擊中引發範圍群傷。</span></div>
+          <div class="guide-item"><span>❄️ <b>冰霜新星</b>：</span><span>週期性釋放冰暴凍結全屏並減速。</span></div>
+        </div>
+
+        <button id="startBtn" class="btn btn-primary btn-lg">
+          ⚔️ 踏入戰場 (START)
+        </button>
+      </div>
+
+      <!-- 升級三選一卡牌選擇 Overlay -->
+      <div id="levelUpOverlay" class="screen-overlay hidden">
+        <div class="levelup-tag">LEVEL UP!</div>
+        <h3 class="levelup-title">請選擇一項奧術天賦升級</h3>
+        <div id="cardsContainer" class="cards-grid">
+          <!-- 卡片由 JS 動態生成 -->
+        </div>
+      </div>
+
+      <!-- 結算死亡 Overlay -->
+      <div id="gameOverOverlay" class="screen-overlay hidden">
+        <div class="overlay-icon animate-bounce">💀</div>
+        <h2 class="overlay-title red-glow">英雄倒下了！</h2>
+        <p id="rankTitle" class="rank-title">獲得稱號：初級魔法學徒</p>
+
+        <div class="stats-box">
+          <div class="stat-row">
+            <span>生存時間：</span>
+            <span id="finalTime" class="stat-val cyan">00:00</span>
+          </div>
+          <div class="stat-row">
+            <span>總擊殺怪獸：</span>
+            <span id="finalKills" class="stat-val amber">0</span>
+          </div>
+          <div class="stat-row">
+            <span>最高到達等級：</span>
+            <span id="finalLevel" class="stat-val green">LV. 1</span>
+          </div>
+        </div>
+
+        <button id="restartBtn" class="btn btn-success btn-lg">
+          🔄 重新挑戰
+        </button>
+      </div>
+    </div>
+
+    <!-- 底部操作列 -->
+    <footer class="game-footer">
+      <div class="footer-left">
+        <span class="key-badge">W</span>
+        <span class="key-badge">A</span>
+        <span class="key-badge">S</span>
+        <span class="key-badge">D</span>
+        <span>或滑鼠長按 / 觸控拖曳移動</span>
+      </div>
+      <div class="footer-right">
+        歷史最高擊殺：<span id="bestKillsText" class="best-kills">0</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
